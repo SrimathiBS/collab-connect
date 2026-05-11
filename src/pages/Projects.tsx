@@ -10,7 +10,7 @@ import { SkillTags } from "@/components/SkillTags";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X, CheckCircle2, Trophy } from "lucide-react";
+import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X, CheckCircle2, Trophy, Search as SearchIcon } from "lucide-react";
 
 interface Project {
   id: string;
@@ -39,6 +39,7 @@ const Projects = () => {
   const [description, setDescription] = useState("");
   const [tech, setTech] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -112,8 +113,15 @@ const Projects = () => {
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
-  const active = projects.filter((p) => p.status !== "completed");
-  const completed = projects.filter((p) => p.status === "completed");
+  const queries = search.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+  const matches = (p: Project) => {
+    if (queries.length === 0) return true;
+    const stack = (p.tech_stack ?? []).map((t) => t.toLowerCase());
+    return queries.every((q) => stack.some((t) => t.includes(q)) || p.title.toLowerCase().includes(q));
+  };
+  const filtered = projects.filter(matches);
+  const active = filtered.filter((p) => p.status !== "completed");
+  const completed = filtered.filter((p) => p.status === "completed");
 
   const renderCard = (p: Project) => {
     const isOwner = p.owner_id === user?.id;
@@ -206,6 +214,16 @@ const Projects = () => {
             <DialogFooter><Button onClick={create} disabled={creating} className="bg-gradient-primary shadow-glow hover:opacity-90">{creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Create</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by tech stack (e.g. react, node, postgres) or project title…"
+          className="pl-9"
+        />
       </div>
 
       <Tabs defaultValue="active" className="w-full">

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { TagInput } from "@/components/TagInput";
 import { SkillTags } from "@/components/SkillTags";
 import { toast } from "sonner";
-import { Github, Loader2, Pencil, Save, X } from "lucide-react";
+import { Github, Loader2, Pencil, Save, X, Trophy, FolderKanban } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -25,6 +25,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [activeCount, setActiveCount] = useState(0);
 
   // edit state
   const [bio, setBio] = useState("");
@@ -46,6 +48,15 @@ const Profile = () => {
         setGithub(data.github_url ?? "");
         setSkills(data.skills ?? []);
       }
+
+      const { data: projs } = await supabase
+        .from("projects")
+        .select("status")
+        .eq("owner_id", user.id);
+      const all = projs ?? [];
+      setCompletedCount(all.filter((p: any) => p.status === "completed").length);
+      setActiveCount(all.filter((p: any) => p.status !== "completed").length);
+
       setLoading(false);
     })();
   }, [user]);
@@ -104,6 +115,25 @@ const Profile = () => {
 
           <h1 className="text-2xl font-bold mt-4">@{profile.username}</h1>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Trophy className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-wider">Completed</span>
+              </div>
+              <p className="mt-1 text-2xl font-bold text-emerald-400">{completedCount}</p>
+              <p className="text-xs text-muted-foreground">project{completedCount === 1 ? "" : "s"} shipped</p>
+            </div>
+            <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
+              <div className="flex items-center gap-2 text-primary">
+                <FolderKanban className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-wider">Active</span>
+              </div>
+              <p className="mt-1 text-2xl font-bold text-primary">{activeCount}</p>
+              <p className="text-xs text-muted-foreground">in progress</p>
+            </div>
+          </div>
 
           <div className="mt-6 space-y-6">
             <div>
