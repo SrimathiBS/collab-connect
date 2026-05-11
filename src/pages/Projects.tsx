@@ -113,8 +113,15 @@ const Projects = () => {
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
-  const active = projects.filter((p) => p.status !== "completed");
-  const completed = projects.filter((p) => p.status === "completed");
+  const queries = search.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+  const matches = (p: Project) => {
+    if (queries.length === 0) return true;
+    const stack = (p.tech_stack ?? []).map((t) => t.toLowerCase());
+    return queries.every((q) => stack.some((t) => t.includes(q)) || p.title.toLowerCase().includes(q));
+  };
+  const filtered = projects.filter(matches);
+  const active = filtered.filter((p) => p.status !== "completed");
+  const completed = filtered.filter((p) => p.status === "completed");
 
   const renderCard = (p: Project) => {
     const isOwner = p.owner_id === user?.id;
