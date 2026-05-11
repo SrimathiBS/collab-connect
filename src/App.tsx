@@ -14,6 +14,7 @@ import Connections from "./pages/Connections";
 import Projects from "./pages/Projects";
 import Communities from "./pages/Communities";
 import Community from "./pages/Community";
+import MissionControl from "./pages/MissionControl";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
