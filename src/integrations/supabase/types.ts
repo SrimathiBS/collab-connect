@@ -246,28 +246,34 @@ export type Database = {
       }
       projects: {
         Row: {
+          completed_at: string | null
           created_at: string
           description: string
           id: string
           owner_id: string
+          status: Database["public"]["Enums"]["project_status"]
           tech_stack: string[]
           title: string
           updated_at: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           description?: string
           id?: string
           owner_id: string
+          status?: Database["public"]["Enums"]["project_status"]
           tech_stack?: string[]
           title: string
           updated_at?: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           description?: string
           id?: string
           owner_id?: string
+          status?: Database["public"]["Enums"]["project_status"]
           tech_stack?: string[]
           title?: string
           updated_at?: string
@@ -315,6 +321,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      project_status: "active" | "completed"
       request_status: "pending" | "accepted" | "rejected"
       task_status: "pending" | "completed"
     }
@@ -445,6 +452,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      project_status: ["active", "completed"],
       request_status: ["pending", "accepted", "rejected"],
       task_status: ["pending", "completed"],
     },
