@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/TagInput";
 import { SkillTags } from "@/components/SkillTags";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X } from "lucide-react";
+import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X, CheckCircle2, Trophy } from "lucide-react";
 
 interface Project {
   id: string;
@@ -17,6 +18,8 @@ interface Project {
   title: string;
   description: string;
   tech_stack: string[];
+  status: "active" | "completed";
+  completed_at: string | null;
   owner?: { username: string };
 }
 interface Membership {
@@ -84,10 +87,103 @@ const Projects = () => {
     load();
   };
 
+  const markCompleted = async (projectId: string) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", projectId);
+    if (error) return toast.error(error.message);
+    toast.success("Project marked as completed 🎉");
+    load();
+  };
+
+  const reopenProject = async (projectId: string) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ status: "active", completed_at: null })
+      .eq("id", projectId);
+    if (error) return toast.error(error.message);
+    toast.success("Project reopened");
+    load();
+  };
+
   const myStatusFor = (projectId: string) =>
     memberships.find((m) => m.project_id === projectId && m.user_id === user?.id)?.status;
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
+  const active = projects.filter((p) => p.status !== "completed");
+  const completed = projects.filter((p) => p.status === "completed");
+
+  const renderCard = (p: Project) => {
+    const isOwner = p.owner_id === user?.id;
+    const status = myStatusFor(p.id);
+    const pending = isOwner ? memberships.filter((m) => m.project_id === p.id && m.status === "pending") : [];
+    const isCompleted = p.status === "completed";
+    return (
+      <div key={p.id} className={`rounded-xl border p-5 shadow-card flex flex-col ${isCompleted ? "border-emerald-500/30 bg-card/60" : "border-border bg-card"}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              {p.title}
+              {isCompleted && <Trophy className="h-4 w-4 text-emerald-400" />}
+            </h3>
+            <p className="text-xs text-muted-foreground">by @{p.owner?.username ?? "unknown"}</p>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {isOwner && <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">Owner</span>}
+            {isCompleted ? (
+              <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Completed</span>
+            ) : (
+              <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">Active</span>
+            )}
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{p.description}</p>
+        <div className="mt-3"><SkillTags skills={p.tech_stack} /></div>
+
+        {isCompleted && p.completed_at && (
+          <p className="text-xs text-emerald-400/80 mt-3">
+            Completed on {new Date(p.completed_at).toLocaleDateString()}
+          </p>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-border space-y-2">
+          {isCompleted ? (
+            isOwner ? (
+              <Button variant="outline" className="w-full" onClick={() => reopenProject(p.id)}>
+                Reopen project
+              </Button>
+            ) : (
+              <Button disabled variant="secondary" className="w-full">
+                <Trophy className="h-4 w-4 mr-2" />Completed
+              </Button>
+            )
+          ) : isOwner ? (
+            <>
+              {pending.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Pending requests ({pending.length}):</p>
+                  {pending.map((m) => <PendingRow key={m.id} membership={m} onAccept={() => respondMember(m.id, "accepted")} onReject={() => respondMember(m.id, "rejected")} />)}
+                </div>
+              ) : <p className="text-xs text-muted-foreground">No pending requests.</p>}
+              <Button onClick={() => markCompleted(p.id)} className="w-full bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30">
+                <CheckCircle2 className="h-4 w-4 mr-2" />Mark as completed
+              </Button>
+            </>
+          ) : status === "accepted" ? (
+            <Button disabled variant="secondary" className="w-full"><Check className="h-4 w-4 mr-2" />Member</Button>
+          ) : status === "pending" ? (
+            <Button disabled variant="outline" className="w-full"><Clock className="h-4 w-4 mr-2" />Request pending</Button>
+          ) : status === "rejected" ? (
+            <Button disabled variant="outline" className="w-full text-destructive">Request rejected</Button>
+          ) : (
+            <Button onClick={() => requestJoin(p.id)} className="w-full bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30"><UserPlus className="h-4 w-4 mr-2" />Request to join</Button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -112,49 +208,30 @@ const Projects = () => {
         </Dialog>
       </div>
 
-      {projects.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12">No projects yet. Be the first!</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {projects.map((p) => {
-            const isOwner = p.owner_id === user?.id;
-            const status = myStatusFor(p.id);
-            const pending = isOwner ? memberships.filter((m) => m.project_id === p.id && m.status === "pending") : [];
-            return (
-              <div key={p.id} className="rounded-xl border border-border bg-card p-5 shadow-card flex flex-col">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-lg">{p.title}</h3>
-                    <p className="text-xs text-muted-foreground">by @{p.owner?.username ?? "unknown"}</p>
-                  </div>
-                  {isOwner && <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">Owner</span>}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{p.description}</p>
-                <div className="mt-3"><SkillTags skills={p.tech_stack} /></div>
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList>
+          <TabsTrigger value="active">Active ({active.length})</TabsTrigger>
+          <TabsTrigger value="completed">
+            <Trophy className="h-3.5 w-3.5 mr-1.5" />Completed ({completed.length})
+          </TabsTrigger>
+        </TabsList>
 
-                <div className="mt-4 pt-4 border-t border-border">
-                  {isOwner ? (
-                    pending.length > 0 ? (
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">Pending requests ({pending.length}):</p>
-                        {pending.map((m) => <PendingRow key={m.id} membership={m} onAccept={() => respondMember(m.id, "accepted")} onReject={() => respondMember(m.id, "rejected")} />)}
-                      </div>
-                    ) : <p className="text-xs text-muted-foreground">No pending requests.</p>
-                  ) : status === "accepted" ? (
-                    <Button disabled variant="secondary" className="w-full"><Check className="h-4 w-4 mr-2" />Member</Button>
-                  ) : status === "pending" ? (
-                    <Button disabled variant="outline" className="w-full"><Clock className="h-4 w-4 mr-2" />Request pending</Button>
-                  ) : status === "rejected" ? (
-                    <Button disabled variant="outline" className="w-full text-destructive">Request rejected</Button>
-                  ) : (
-                    <Button onClick={() => requestJoin(p.id)} className="w-full bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30"><UserPlus className="h-4 w-4 mr-2" />Request to join</Button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        <TabsContent value="active" className="mt-6">
+          {active.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">No active projects yet.</p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">{active.map(renderCard)}</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="mt-6">
+          {completed.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">No completed projects yet. Finish strong! 🚀</p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">{completed.map(renderCard)}</div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
