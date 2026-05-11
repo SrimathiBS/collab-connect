@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { TagInput } from "@/components/TagInput";
 import { SkillTags } from "@/components/SkillTags";
 import { toast } from "sonner";
-import { Github, Loader2, Pencil, Save, X } from "lucide-react";
+import { Github, Loader2, Pencil, Save, X, Trophy, FolderKanban } from "lucide-react";
 
 interface Profile {
   id: string;
