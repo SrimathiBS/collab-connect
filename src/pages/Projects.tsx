@@ -39,6 +39,7 @@ const Projects = () => {
   const [description, setDescription] = useState("");
   const [tech, setTech] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
     if (!user) return;
