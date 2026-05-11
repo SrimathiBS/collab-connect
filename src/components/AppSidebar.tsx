@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { User, Search, Users, FolderKanban, MessagesSquare, LogOut, Sparkles } from "lucide-react";
+import { User, Search, Users, FolderKanban, MessagesSquare, LogOut, Sparkles, Target } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +21,7 @@ const items = [
   { title: "Search Users", url: "/app/search", icon: Search },
   { title: "Connections", url: "/app/connections", icon: Users },
   { title: "Projects", url: "/app/projects", icon: FolderKanban },
+  { title: "Mission Control", url: "/app/mission-control", icon: Target },
   { title: "Communities", url: "/app/communities", icon: MessagesSquare },
 ];
 
