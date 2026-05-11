@@ -10,7 +10,7 @@ import { SkillTags } from "@/components/SkillTags";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X, CheckCircle2, Trophy } from "lucide-react";
+import { FolderKanban, Loader2, Plus, UserPlus, Check, Clock, X, CheckCircle2, Trophy, Search as SearchIcon } from "lucide-react";
 
 interface Project {
   id: string;
