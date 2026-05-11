@@ -14,6 +14,7 @@ import Connections from "./pages/Connections";
 import Projects from "./pages/Projects";
 import Communities from "./pages/Communities";
 import Community from "./pages/Community";
+import MissionControl from "./pages/MissionControl";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,8 @@ const App = () => (
               <Route path="projects" element={<Projects />} />
               <Route path="communities" element={<Communities />} />
               <Route path="communities/:id" element={<Community />} />
+              <Route path="mission-control" element={<MissionControl />} />
+              <Route path="mission-control/:projectId" element={<MissionControl />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
