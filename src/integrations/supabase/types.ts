@@ -197,6 +197,53 @@ export type Database = {
           },
         ]
       }
+      project_tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          completed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          project_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          project_id: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
@@ -269,6 +316,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       request_status: "pending" | "accepted" | "rejected"
+      task_status: "pending" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -398,6 +446,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       request_status: ["pending", "accepted", "rejected"],
+      task_status: ["pending", "completed"],
     },
   },
 } as const
