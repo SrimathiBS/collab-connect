@@ -25,6 +25,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [activeCount, setActiveCount] = useState(0);
 
   // edit state
   const [bio, setBio] = useState("");
