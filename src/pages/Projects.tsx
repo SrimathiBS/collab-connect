@@ -216,6 +216,16 @@ const Projects = () => {
         </Dialog>
       </div>
 
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by tech stack (e.g. react, node, postgres) or project title…"
+          className="pl-9"
+        />
+      </div>
+
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
           <TabsTrigger value="active">Active ({active.length})</TabsTrigger>
