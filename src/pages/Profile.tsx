@@ -48,6 +48,15 @@ const Profile = () => {
         setGithub(data.github_url ?? "");
         setSkills(data.skills ?? []);
       }
+
+      const { data: projs } = await supabase
+        .from("projects")
+        .select("status")
+        .eq("owner_id", user.id);
+      const all = projs ?? [];
+      setCompletedCount(all.filter((p: any) => p.status === "completed").length);
+      setActiveCount(all.filter((p: any) => p.status !== "completed").length);
+
       setLoading(false);
     })();
   }, [user]);
